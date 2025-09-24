@@ -1,4 +1,4 @@
-# G7 Landen.py - Clean Version
+# G7 Landen.py - Continuous Lines Version
 import streamlit as st
 import requests
 import pandas as pd
@@ -61,6 +61,10 @@ def get_population_data(country_name):
             # Clean and sort data
             hist_df = hist_df.sort_index()
             
+            # Interpolate missing values for continuous lines
+            for col in hist_df.select_dtypes(include=['number']).columns:
+                hist_df[col] = hist_df[col].interpolate(method='linear')
+            
             print(f"Success {country_name}: {len(hist_df)} data points retrieved")
             
         else:
@@ -78,6 +82,11 @@ def get_population_data(country_name):
                 if not gdp_df.empty and 'year' in gdp_df.columns:
                     gdp_df = gdp_df.set_index('year')
                     hist_df = hist_df.combine_first(gdp_df)
+                    
+                    # Interpolate GDP data as well
+                    if 'gdp' in hist_df.columns:
+                        hist_df['gdp'] = hist_df['gdp'].interpolate(method='linear')
+                    
                     print(f"Success {country_name}: GDP data added")
         except Exception as e:
             print(f"Warning {country_name}: GDP data error - {e}")
@@ -89,7 +98,7 @@ def get_population_data(country_name):
     return hist_df
 
 def create_g7_comparison_chart(all_data, metric='historical_population', title_suffix='Historical Population'):
-    """Create comparison chart for G7 countries"""
+    """Create comparison chart for G7 countries with continuous lines"""
     fig = go.Figure()
     
     # Color palette for G7 countries
@@ -103,10 +112,10 @@ def create_g7_comparison_chart(all_data, metric='historical_population', title_s
             fig.add_trace(go.Scatter(
                 x=data.index,
                 y=data[metric],
-                mode='lines+markers',
+                mode='lines',  # Only lines, no markers for smooth continuous lines
                 name=country,
                 line=dict(width=2.5, color=colors[i % len(colors)]),
-                marker=dict(size=4),
+                connectgaps=True,  # Connect gaps in data for continuous lines
                 hovertemplate=f'<b>{country}</b><br>' +
                              'Year: %{x}<br>' +
                              f'{metric_display}: %{{y:,.0f}}<br>' +
@@ -314,7 +323,12 @@ def main():
                             title=f'{country} - {selected_metric.replace("_", " ").title()}',
                             labels={'x': 'Year', selected_metric: selected_metric.replace("_", " ").title()}
                         )
-                        fig.update_traces(mode='lines+markers')
+                        # Update for continuous lines without markers
+                        fig.update_traces(
+                            mode='lines',
+                            connectgaps=True,
+                            line=dict(width=3)
+                        )
                         fig.update_layout(height=400, template='plotly_white')
                         st.plotly_chart(fig, use_container_width=True)
                         chart_count += 1
