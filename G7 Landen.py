@@ -1,4 +1,4 @@
-# G7 Landen.py - FIXED VERSION
+# G7 Landen.py - Clean Version
 import streamlit as st
 import requests
 import pandas as pd
@@ -44,6 +44,14 @@ def get_population_data(country_name):
                     hist_df = hist_df.set_index('year')
                     hist_df.rename(columns={'population': 'historical_population'}, inplace=True)
             
+            # Process population forecast data
+            forecast_data = data.get('population_forecast', [])
+            if forecast_data:
+                forecast_df = pd.DataFrame(forecast_data)
+                forecast_df = forecast_df.set_index('year')
+                forecast_df.rename(columns={'population': 'population_forecast'}, inplace=True)
+                hist_df = hist_df.combine_first(forecast_df)
+            
             # Add other top-level fields
             excluded_fields = ['historical_population', 'population_forecast']
             for key, value in data.items():
@@ -53,10 +61,10 @@ def get_population_data(country_name):
             # Clean and sort data
             hist_df = hist_df.sort_index()
             
-            print(f"✅ {country_name}: {len(hist_df)} datapunten opgehaald")
+            print(f"Success {country_name}: {len(hist_df)} data points retrieved")
             
         else:
-            print(f"❌ {country_name}: API Error {response.status_code}")
+            print(f"Error {country_name}: API Error {response.status_code}")
             return pd.DataFrame()
             
         # GDP API call
@@ -70,18 +78,18 @@ def get_population_data(country_name):
                 if not gdp_df.empty and 'year' in gdp_df.columns:
                     gdp_df = gdp_df.set_index('year')
                     hist_df = hist_df.combine_first(gdp_df)
-                    print(f"✅ {country_name}: GDP data toegevoegd")
+                    print(f"Success {country_name}: GDP data added")
         except Exception as e:
-            print(f"⚠️ {country_name}: GDP data error - {e}")
+            print(f"Warning {country_name}: GDP data error - {e}")
                 
     except Exception as e:
-        print(f"❌ {country_name}: Error - {e}")
+        print(f"Error {country_name}: {e}")
         return pd.DataFrame()
     
     return hist_df
 
 def create_g7_comparison_chart(all_data, metric='historical_population', title_suffix='Historical Population'):
-    """Create comparison chart for G7 countries - FIXED VERSION"""
+    """Create comparison chart for G7 countries"""
     fig = go.Figure()
     
     # Color palette for G7 countries
@@ -100,14 +108,14 @@ def create_g7_comparison_chart(all_data, metric='historical_population', title_s
                 line=dict(width=2.5, color=colors[i % len(colors)]),
                 marker=dict(size=4),
                 hovertemplate=f'<b>{country}</b><br>' +
-                             'Jaar: %{x}<br>' +
+                             'Year: %{x}<br>' +
                              f'{metric_display}: %{{y:,.0f}}<br>' +
                              '<extra></extra>'
             ))
     
     fig.update_layout(
         title=f'G7 Countries - {title_suffix}',
-        xaxis_title='Jaar',
+        xaxis_title='Year',
         yaxis_title=metric.replace('_', ' ').title(),
         hovermode='x unified',
         showlegend=True,
@@ -126,7 +134,7 @@ def create_g7_comparison_chart(all_data, metric='historical_population', title_s
     return fig
 
 def main():
-    """Streamlit Application - FIXED VERSION"""
+    """Streamlit Application"""
     st.set_page_config(
         page_title="G7 Population & GDP Analyzer",
         layout="wide"
@@ -168,15 +176,15 @@ def main():
         st.markdown("""
         ### About G7
         The Group of Seven (G7) is an informal bloc of industrialized democracies:
-        - 🇨🇦 **Canada**
-        - 🇫🇷 **France** 
-        - 🇩🇪 **Germany**
-        - 🇮🇹 **Italy**
-        - 🇯🇵 **Japan**
-        - 🇬🇧 **United Kingdom**
-        - 🇺🇸 **United States**
+        - **Canada**
+        - **France** 
+        - **Germany**
+        - **Italy**
+        - **Japan**
+        - **United Kingdom**
+        - **United States**
         
-        Click the button above to start analyzing population and GDP data!
+        Click the button above to start analyzing population and GDP data.
         """)
         return
     
@@ -187,7 +195,7 @@ def main():
         return
     
     # Country selection
-    st.sidebar.subheader("🌍 Country Selection")
+    st.sidebar.subheader("Country Selection")
     selected_countries = st.sidebar.multiselect(
         "Select Countries:",
         options=list(G7_COUNTRIES.keys()),
@@ -227,15 +235,15 @@ def main():
         min_year = int(min(all_years))
         max_year = int(max(all_years))
         
-   year_range = st.sidebar.slider(
-    "Year Range:",
-    min_value=min_year,
-    max_value=max(max_year, 2025),  # Ensure slider goes to at least 2025
-    value=(min_year, max(max_year, 2025)),
-    help="Select the time period to analyze"
-)
+        year_range = st.sidebar.slider(
+            "Year Range:",
+            min_value=min_year,
+            max_value=max(max_year, 2025),
+            value=(min_year, max(max_year, 2025)),
+            help="Select the time period to analyze"
+        )
     else:
-        year_range = (2000, 2025)  # Default range
+        year_range = (2000, 2025)
     
     # Filter data based on selections
     filtered_data = {}
@@ -263,7 +271,7 @@ def main():
             st.plotly_chart(fig, use_container_width=True)
             
             # Summary statistics
-            st.subheader("📊 Summary Statistics")
+            st.subheader("Summary Statistics")
             
             summary_data = []
             for country, data in filtered_data.items():
@@ -326,7 +334,7 @@ def main():
     with tab4:
         st.subheader("G7 Rankings")
         
-        if selected_metric in ['historical_population', 'gdp', 'median_age', 'fertility_rate']:
+        if selected_metric in ['historical_population', 'gdp', 'median_age', 'fertility_rate', 'population_forecast']:
             ranking_data = []
             
             for country, data in filtered_data.items():
@@ -372,7 +380,7 @@ def main():
             else:
                 st.info("No ranking data available for the selected metric.")
         else:
-            st.info("Rankings are available for: historical_population, gdp, median_age, fertility_rate")
+            st.info("Rankings are available for: historical_population, gdp, median_age, fertility_rate, population_forecast")
     
     # Footer
     st.markdown("---")
