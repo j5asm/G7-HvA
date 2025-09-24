@@ -227,15 +227,15 @@ def main():
         min_year = int(min(all_years))
         max_year = int(max(all_years))
         
-        year_range = st.sidebar.slider(
-            "Year Range:",
-            min_value=min_year,
-            max_value=max_year,
-            value=(min_year, max_year),
-            help="Select the time period to analyze"
-        )
+   year_range = st.sidebar.slider(
+    "Year Range:",
+    min_value=min_year,
+    max_value=max(max_year, 2025),  # Ensure slider goes to at least 2025
+    value=(min_year, max(max_year, 2025)),
+    help="Select the time period to analyze"
+)
     else:
-        year_range = (2000, 2023)  # Default range
+        year_range = (2000, 2025)  # Default range
     
     # Filter data based on selections
     filtered_data = {}
@@ -249,7 +249,7 @@ def main():
         return
     
     # Main content - Tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 G7 Comparison", "📈 Individual Charts", "📋 Data Tables", "🏆 Rankings"])
+    tab1, tab2, tab3, tab4 = st.tabs(["G7 Comparison", "Individual Charts", "Data Tables", "Rankings"])
     
     with tab1:
         st.subheader(f"G7 Comparison: {selected_metric.replace('_', ' ').title()}")
@@ -317,7 +317,7 @@ def main():
         st.subheader("Raw Data Tables")
         
         for country, data in filtered_data.items():
-            with st.expander(f"📊 {country} Data"):
+            with st.expander(f"{country} Data"):
                 if not data.empty:
                     st.dataframe(data, use_container_width=True)
                 else:
