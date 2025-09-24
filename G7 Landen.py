@@ -129,19 +129,18 @@ def main():
     """Streamlit Application - FIXED VERSION"""
     st.set_page_config(
         page_title="G7 Population & GDP Analyzer",
-        page_icon="🏛️",
         layout="wide"
     )
     
-    st.title("🏛️ G7 Countries Analysis")
+    st.title("G7 Countries Analysis")
     st.markdown("**The Group of Seven:** Canada, France, Germany, Italy, Japan, United Kingdom, United States")
     st.markdown("---")
     
     # Sidebar
-    st.sidebar.header("🎛️ Controls")
+    st.sidebar.header("Controls")
     
     # Load data button
-    if st.sidebar.button("📊 Load G7 Data", type="primary"):
+    if st.sidebar.button("Load G7 Data", type="primary"):
         with st.spinner("Loading G7 data..."):
             g7_data = {}
             progress = st.progress(0)
@@ -165,9 +164,9 @@ def main():
     
     # Check if data exists
     if 'g7_data' not in st.session_state:
-        st.info("👈 Click 'Load G7 Data' in the sidebar to start")
+        st.info("Click 'Load G7 Data' in the sidebar to start")
         st.markdown("""
-        ### 🏛️ About G7
+        ### About G7
         The Group of Seven (G7) is an informal bloc of industrialized democracies:
         - 🇨🇦 **Canada**
         - 🇫🇷 **France** 
@@ -210,7 +209,7 @@ def main():
         return
     
     # Metric selection
-    st.sidebar.subheader("📊 Metric Selection")
+    st.sidebar.subheader("Metric Selection")
     selected_metric = st.sidebar.selectbox(
         "Select Metric:",
         options=available_metrics,
@@ -219,7 +218,7 @@ def main():
     )
     
     # Year range filter
-    st.sidebar.subheader("📅 Time Period")
+    st.sidebar.subheader("Time Period")
     all_years = []
     for data in g7_data.values():
         all_years.extend(data.index.tolist())
@@ -377,8 +376,8 @@ def main():
     
     # Footer
     st.markdown("---")
-    st.markdown("**🔍 Data Source:** API Ninjas - Population & GDP APIs")
-    st.markdown("**📅 Data Status:** Real-time API fetching")
+    st.markdown("**Data Source:** API Ninjas - Population & GDP APIs")
+    st.markdown("**Data Status:** Real-time API fetching")
 
 if __name__ == "__main__":
     main()
